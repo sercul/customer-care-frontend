@@ -37,6 +37,16 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
+
+        {/* Example Credentials Box */}
+        <div className="rounded-md bg-blue-50 p-4">
+          <div className="text-sm text-blue-700">
+            <p className="font-medium mb-1">Example Login Credentials:</p>
+            <p>Email: john@doe.com</p>
+            <p>Password: Password</p>
+          </div>
+        </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="rounded-md bg-red-50 p-4">

@@ -1,9 +1,26 @@
-import { Suspense } from 'react';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import ReviewList from '@/components/reviews/ReviewList';
 import Header from '@/components/layout/Header';
 import Loading from '@/components/ui/Loading';
 
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return <Loading />;
+  }
+
   return (
     <main className="min-h-screen bg-gray-50">
       <Header />
@@ -12,9 +29,7 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-gray-900 mb-8">
             Product Reviews
           </h1>
-          <Suspense fallback={<Loading />}>
-            <ReviewList />
-          </Suspense>
+          <ReviewList />
         </div>
       </div>
     </main>
