@@ -46,6 +46,7 @@ const REGISTER_MUTATION = gql`
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const client = useApolloClient();
 
@@ -59,17 +60,20 @@ export function useAuth() {
 
     if (token && userData) {
       try {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing user data:', error);
         logout();
       }
     }
+    setIsLoading(false);
   }, []);
 
   const login = useCallback(
     async (email: string, password: string) => {
       try {
+        setIsLoading(true);
         const { data } = await loginMutation({
           variables: { email, password },
         });
@@ -79,13 +83,23 @@ export function useAuth() {
           localStorage.setItem('token', token);
           localStorage.setItem('user', JSON.stringify(user));
           setUser(user);
-          router.push('/');
+          
+          // Wait for state to update before redirecting
+          setTimeout(() => {
+            router.push('/');
+          }, 100);
+          
           return { success: true };
         }
         return { success: false, error: 'Login failed' };
-      } catch (error) {
+      } catch (error: any) {
         console.error('Login error:', error);
-        return { success: false, error: 'Invalid credentials' };
+        return { 
+          success: false, 
+          error: error.message || 'Invalid credentials'
+        };
+      } finally {
+        setIsLoading(false);
       }
     },
     [loginMutation, router]
@@ -94,6 +108,7 @@ export function useAuth() {
   const register = useCallback(
     async (email: string, password: string, name: string) => {
       try {
+        setIsLoading(true);
         const { data } = await registerMutation({
           variables: { email, password, name },
         });
@@ -103,13 +118,23 @@ export function useAuth() {
           localStorage.setItem('token', token);
           localStorage.setItem('user', JSON.stringify(user));
           setUser(user);
-          router.push('/');
+          
+          // Wait for state to update before redirecting
+          setTimeout(() => {
+            router.push('/');
+          }, 100);
+          
           return { success: true };
         }
         return { success: false, error: 'Registration failed' };
-      } catch (error) {
+      } catch (error: any) {
         console.error('Registration error:', error);
-        return { success: false, error: 'Email already exists' };
+        return { 
+          success: false, 
+          error: error.message || 'Email already exists'
+        };
+      } finally {
+        setIsLoading(false);
       }
     },
     [registerMutation, router]
@@ -128,6 +153,7 @@ export function useAuth() {
     login,
     register,
     logout,
+    isLoading,
     isAuthenticated: !!user,
   };
 } 
