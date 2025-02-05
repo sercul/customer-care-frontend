@@ -8,9 +8,9 @@ import { Bars3Icon, XMarkIcon, UserCircleIcon } from '@heroicons/react/24/outlin
 import { useAuth } from '@/hooks/useAuth';
 
 const navigation = [
-  { name: 'Reviews', href: '/' },
-  { name: 'Write a Review', href: '/reviews/new' },
   { name: 'Products', href: '/products' },
+  { name: 'Reviews', href: '/reviews' },
+  { name: 'Write a Review', href: '/reviews/new' },
 ];
 
 function classNames(...classes: string[]) {
