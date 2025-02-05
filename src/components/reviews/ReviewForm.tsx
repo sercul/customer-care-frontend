@@ -6,6 +6,29 @@ import { StarIcon } from '@heroicons/react/20/solid';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { useSearchParams } from 'next/navigation';
 
+const GET_REVIEWS = gql`
+  query GetReviews {
+    reviews {
+      id
+      rating
+      content
+      sentiment
+      status
+      createdAt
+      user {
+        name
+      }
+      product {
+        id
+        name
+      }
+      responses {
+        id
+      }
+    }
+  }
+`;
+
 const GET_PRODUCTS = gql`
   query GetProducts {
     products {
@@ -35,13 +58,16 @@ const SUBMIT_REVIEW = gql`
       content
       sentiment
       status
+      createdAt
+      user {
+        name
+      }
       product {
+        id
         name
       }
       responses {
         id
-        content
-        priority
       }
     }
   }
@@ -67,7 +93,29 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<ReviewFormData>();
   const searchParams = useSearchParams();
 
-  const [submitReview, { loading: submitLoading, error: submitError }] = useMutation(SUBMIT_REVIEW);
+  const [submitReview, { loading: submitLoading, error: submitError }] = useMutation(SUBMIT_REVIEW, {
+    update: (cache, { data: { createReview } }) => {
+      const existingReviews = cache.readQuery<{ reviews: any[] }>({
+        query: GET_REVIEWS
+      });
+
+      if (existingReviews?.reviews) {
+        cache.writeQuery({
+          query: GET_REVIEWS,
+          data: {
+            reviews: [createReview, ...existingReviews.reviews]
+          }
+        });
+      }
+    },
+    onCompleted: (data) => {
+      reset();
+      setRating(0);
+      if (onSuccess) {
+        onSuccess(data.createReview);
+      }
+    }
+  });
   const { data: productsData, loading: productsLoading, error: productsError } = useQuery(GET_PRODUCTS);
   const { data: userData, loading: userLoading, error: userError } = useQuery(ME_QUERY);
 

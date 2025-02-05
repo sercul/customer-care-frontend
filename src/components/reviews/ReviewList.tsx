@@ -76,14 +76,17 @@ function formatDate(dateString: string): string {
 }
 
 export default function ReviewList() {
-  const { data, loading, error } = useQuery(GET_REVIEWS);
+  const { data, loading, error } = useQuery(GET_REVIEWS, {
+    fetchPolicy: 'cache-and-network',
+  });
 
-  if (loading) return <Loading />;
-  if (error) return <div>Error loading reviews</div>;
+  if (loading && !data) return <Loading />;
+  if (error) return <div>Error loading reviews: {error.message}</div>;
+  if (!data?.reviews) return <div>No reviews found</div>;
 
   return (
     <div className="space-y-6">
-      {data.reviews.map((review: any) => (
+      {data.reviews.map((review: Review) => (
         <Link
           key={review.id}
           href={`/reviews/${review.id}`}
